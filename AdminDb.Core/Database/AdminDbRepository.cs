@@ -23,28 +23,6 @@ internal sealed class AdminDbRepository(IDatabaseProvider db)
             typeof(AdminServerMappingEntity));
     }
 
-    internal async Task SeedDefaultServersAsync()
-    {
-        string[] defaultTags = ["ttt", "mix", "event", "prophunt", "superpowers", "public"];
-
-        foreach (var tag in defaultTags)
-        {
-            var existing = await db.Queryable<AdminServerEntity>()
-                .Where(s => s.Tag == tag)
-                .FirstOrDefaultAsync();
-
-            if (existing is null)
-            {
-                await db.InsertAsync(new AdminServerEntity
-                {
-                    Tag         = tag,
-                    DisplayName = tag,
-                    CreatedAt   = DateTime.UtcNow,
-                });
-            }
-        }
-    }
-
     internal async Task<int?> GetOrCreateServerIdAsync(string tag)
     {
         var existing = await db.Queryable<AdminServerEntity>()

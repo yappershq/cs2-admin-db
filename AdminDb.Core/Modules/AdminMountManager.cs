@@ -72,7 +72,6 @@ internal sealed class AdminMountManager : IModule
             try
             {
                 _repository.InitSchema();
-                await _repository.SeedDefaultServersAsync();
 
                 var serverId = await _repository.GetOrCreateServerIdAsync(_config.ServerTag);
                 if (serverId is null)
