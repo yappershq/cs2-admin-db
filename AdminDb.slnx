@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="AdminDb.Shared/AdminDb.Shared.csproj" />
+  <Project Path="AdminDb.Database.Shared/AdminDb.Database.Shared.csproj" />
+  <Project Path="AdminDb.Database/AdminDb.Database.csproj" />
+  <Project Path="AdminDb.Core/AdminDb.Core.csproj" />
+</Solution>

@@ -1,0 +1,10 @@
+{
+    "Database": {
+        "Type": "mysql",
+        "Host": "localhost",
+        "Port": 3306,
+        "Database": "cs2admins",
+        "User": "root",
+        "Password": ""
+    }
+}

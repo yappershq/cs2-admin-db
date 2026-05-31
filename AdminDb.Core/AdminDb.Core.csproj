@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>AdminDb</AssemblyName>
+    <RootNamespace>AdminDb.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection"        Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(AdminDbRoot)AdminDb.Shared\AdminDb.Shared.csproj"                   Private="false" />
+    <ProjectReference Include="$(AdminDbRoot)AdminDb.Database.Shared\AdminDb.Database.Shared.csproj" Private="false" />
+  </ItemGroup>
+</Project>

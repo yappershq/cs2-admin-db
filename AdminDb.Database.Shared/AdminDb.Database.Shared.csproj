@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>AdminDb.Database.Shared</AssemblyName>
+    <RootNamespace>AdminDb.Database.Shared</RootNamespace>
+  </PropertyGroup>
+</Project>

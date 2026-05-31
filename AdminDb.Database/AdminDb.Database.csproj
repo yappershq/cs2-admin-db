@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>AdminDb.Database</AssemblyName>
+    <RootNamespace>AdminDb.Database</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MySqlConnector"         Version="2.5.0" />
+    <PackageReference Include="Npgsql"                 Version="10.0.1" />
+    <PackageReference Include="SqlSugarCoreNoDrive"    Version="5.1.4.211" />
+    <PackageReference Include="Microsoft.Extensions.Configuration"      Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(AdminDbRoot)AdminDb.Database.Shared\AdminDb.Database.Shared.csproj" Private="false" />
+  </ItemGroup>
+</Project>
