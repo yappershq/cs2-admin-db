@@ -117,7 +117,8 @@ internal sealed class AdminDbRepository(IDatabaseProvider db)
             rolePermissions,
             relevantAdminIds,
             admins,
-            adminPermissions);
+            adminPermissions,
+            adminServers);
     }
 }
 
@@ -130,4 +131,5 @@ internal sealed record AdminDbSnapshot(
     List<AdminRolePermissionEntity>        RolePermissions,
     HashSet<int>                           RelevantAdminIds,
     List<AdminEntity>                      Admins,
-    List<AdminPermissionEntity>            AdminPermissions);
+    List<AdminPermissionEntity>            AdminPermissions,
+    List<AdminServerMappingEntity>         AdminServers);

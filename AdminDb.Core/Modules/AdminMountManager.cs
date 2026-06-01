@@ -199,6 +199,15 @@ internal sealed class AdminMountManager : IModule
                 .Select(ap => ap.Permission)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+            // Prepend the per-server role reference (admin_servers_mapping.RoleName)
+            // so 'root', 'senior_admin' etc resolve via the manifest's Roles list.
+            var roleName = snap.AdminServers
+                .Where(am => am.AdminId == admin.Id && am.ServerId == _myServerId)
+                .Select(am => am.RoleName)
+                .FirstOrDefault(rn => !string.IsNullOrEmpty(rn));
+            if (!string.IsNullOrEmpty(roleName))
+                perms.Add("@" + roleName);
+
             admins.Add(new AdminManifest(admin.SteamId, admin.Immunity, perms));
         }
 
