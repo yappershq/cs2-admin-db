@@ -33,7 +33,7 @@ public sealed class AdminDbDatabasePlugin : IModSharpModule
         _bridge = new InterfaceBridge(this, sharedSystem, sharpPath);
         _logger = sharedSystem.GetLoggerFactory().CreateLogger<AdminDbDatabasePlugin>();
 
-        var configuration = LoadConfiguration(sharpPath);
+        var (configuration, wroteDefault) = LoadConfiguration(sharpPath);
 
         var services = new ServiceCollection();
         services.AddSingleton(_bridge);
@@ -44,6 +44,22 @@ public sealed class AdminDbDatabasePlugin : IModSharpModule
         var dbType = (configuration["Database:Type"] ?? "mysql").ToLowerInvariant();
 
         _logger.LogInformation("[AdminDb.Database] Using SqlSugar ({DbType})", dbType);
+
+        if (wroteDefault)
+        {
+            var configPath = Path.Combine(sharpPath, "configs", "cs2-admin-db", "cs2-admin-db.database.jsonc");
+            _logger.LogWarning(
+                "[AdminDb.Database] No DB config existed — wrote default template at {Path}. "
+                + "EDIT IT with your real Host/User/Password and restart the server. "
+                + "Plugin will not function with localhost/root/empty defaults.",
+                configPath);
+        }
+        else if (LooksLikeUneditedDefaults(configuration))
+        {
+            _logger.LogWarning(
+                "[AdminDb.Database] DB config looks unedited (Host=localhost, User=root, Password empty). "
+                + "Plugin will fail to connect. Edit configs/cs2-admin-db/cs2-admin-db.database.jsonc and restart.");
+        }
 
         services.AddSingleton<ISqlSugarClient>(_ =>
             new SqlSugarScope(SqlSugarAdminDbProvider.BuildConnectionConfig(configuration)));
@@ -83,18 +99,31 @@ public sealed class AdminDbDatabasePlugin : IModSharpModule
         }
         """;
 
-    private static IConfigurationRoot LoadConfiguration(string sharpPath)
+    private static (IConfigurationRoot config, bool wroteDefault) LoadConfiguration(string sharpPath)
     {
         var configPath = Path.Combine(sharpPath, "configs", "cs2-admin-db", "cs2-admin-db.database.jsonc");
 
+        var wroteDefault = false;
         if (!File.Exists(configPath))
         {
             Directory.CreateDirectory(Path.GetDirectoryName(configPath)!);
             File.WriteAllText(configPath, DefaultConfig);
+            wroteDefault = true;
         }
 
-        return new ConfigurationBuilder()
+        var config = new ConfigurationBuilder()
             .AddJsonFile(configPath, optional: false, reloadOnChange: false)
             .Build();
+        return (config, wroteDefault);
+    }
+
+    private static bool LooksLikeUneditedDefaults(IConfiguration cfg)
+    {
+        var host     = cfg["Database:Host"];
+        var user     = cfg["Database:User"];
+        var password = cfg["Database:Password"];
+        return string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(user, "root", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrEmpty(password);
     }
 }

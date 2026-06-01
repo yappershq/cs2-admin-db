@@ -35,7 +35,10 @@ internal sealed class AdminDbConfig
                 var def = new AdminDbConfig();
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                 File.WriteAllText(path, JsonSerializer.Serialize(def, JsonOpts));
-                logger.LogInformation("[AdminDb] Wrote default config to {Path}", path);
+                logger.LogWarning(
+                    "[AdminDb] No plugin config existed — wrote default at {Path}. "
+                    + "EDIT ServerTag to a per-server identity (e.g. 'ttt', 'mix') and restart.",
+                    path);
                 return def;
             }
 
@@ -48,6 +51,13 @@ internal sealed class AdminDbConfig
 
             logger.LogInformation("[AdminDb] Loaded config: ServerTag={Tag}, RefreshInterval={Sec}s",
                 cfg.ServerTag, cfg.RefreshIntervalSeconds);
+            if (string.Equals(cfg.ServerTag, "default", StringComparison.Ordinal))
+            {
+                logger.LogWarning(
+                    "[AdminDb] ServerTag is still 'default' — edit configs/cs2-admin-db/cs2-admin-db.jsonc "
+                    + "and set ServerTag to a per-server identity (e.g. 'ttt', 'mix', 'prophunt'). "
+                    + "Multiple servers sharing 'default' will all see the same admin set.");
+            }
             return cfg;
         }
         catch (Exception e)
