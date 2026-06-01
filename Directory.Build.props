@@ -69,5 +69,6 @@
   <ItemGroup>
     <PackageReference Include="ModSharp.Sharp.Shared"                           Version="$(ModSharpVersion)" PrivateAssets="all" ExcludeAssets="runtime" />
     <PackageReference Include="ModSharp.Sharp.Modules.AdminManager.Shared"      Version="$(ModSharpVersion)" PrivateAssets="all" ExcludeAssets="runtime" />
+    <PackageReference Include="ModSharp.Sharp.Modules.CommandCenter.Shared"     Version="$(ModSharpVersion)" PrivateAssets="all" ExcludeAssets="runtime" />
   </ItemGroup>
 </Project>

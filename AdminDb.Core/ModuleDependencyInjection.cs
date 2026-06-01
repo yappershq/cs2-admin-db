@@ -27,10 +27,12 @@ internal static class ModuleDependencyInjection
         services.AddSingleton<AdminMountManager>();
         services.AddSingleton<SharedInterfaceModule>();
         services.AddSingleton<ReloadCommandModule>();
+        services.AddSingleton<SqlRunnerModule>();
 
         services.AddSingleton<IModule>(sp => sp.GetRequiredService<AdminMountManager>());
         services.AddSingleton<IModule>(sp => sp.GetRequiredService<SharedInterfaceModule>());
         services.AddSingleton<IModule>(sp => sp.GetRequiredService<ReloadCommandModule>());
+        services.AddSingleton<IModule>(sp => sp.GetRequiredService<SqlRunnerModule>());
 
         return services;
     }
