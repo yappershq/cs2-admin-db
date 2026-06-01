@@ -21,4 +21,6 @@ public interface IDatabaseProvider
     Task<int> UpsertAsync<T>(T entity, Expression<Func<T, object>> matchColumns) where T : class, new();
 
     Task<int> DeleteAsync<T>(Expression<Func<T, bool>> predicate) where T : class, new();
+
+    Task<int> ExecuteSqlAsync(string sql);
 }

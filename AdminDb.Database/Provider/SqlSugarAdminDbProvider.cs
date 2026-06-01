@@ -45,6 +45,11 @@ internal sealed class SqlSugarAdminDbProvider(ISqlSugarClient db) : IDatabasePro
         return await db.Deleteable<T>().Where(predicate).ExecuteCommandAsync();
     }
 
+    public async Task<int> ExecuteSqlAsync(string sql)
+    {
+        return await db.Ado.ExecuteCommandAsync(sql);
+    }
+
     internal static ConnectionConfig BuildConnectionConfig(
         Microsoft.Extensions.Configuration.IConfiguration configuration)
     {

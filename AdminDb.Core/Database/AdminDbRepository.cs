@@ -21,7 +21,24 @@ internal sealed class AdminDbRepository(IDatabaseProvider db)
             typeof(AdminEntity),
             typeof(AdminPermissionEntity),
             typeof(AdminServerMappingEntity));
+
+        ApplyMigrationsAsync().GetAwaiter().GetResult();
     }
+
+    private async Task ApplyMigrationsAsync()
+    {
+        foreach (var sql in Migrations)
+        {
+            try { await db.ExecuteSqlAsync(sql); }
+            catch { }
+        }
+    }
+
+    private static readonly string[] Migrations =
+    [
+        "ALTER TABLE admins      MODIFY Immunity TINYINT UNSIGNED NOT NULL",
+        "ALTER TABLE admin_roles MODIFY Immunity TINYINT UNSIGNED NOT NULL",
+    ];
 
     internal async Task<int?> GetOrCreateServerIdAsync(string tag)
     {
