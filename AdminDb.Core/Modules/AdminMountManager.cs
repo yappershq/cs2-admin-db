@@ -30,6 +30,8 @@ internal sealed class AdminMountManager : IModule
     private int   _myServerId;
     private Timer? _timer;
     private string _lastHash = string.Empty;
+    private bool   _initialized;
+    private int    _ticking;
 
     public AdminMountManager(
         InterfaceBridge             bridge,
@@ -67,32 +69,53 @@ internal sealed class AdminMountManager : IModule
             return;
         }
 
-        _ = Task.Run(async () =>
+        var interval = TimeSpan.FromSeconds(Math.Max(10, _config.RefreshIntervalSeconds));
+        _timer = new Timer(_ => _ = Task.Run(TickAsync), null, TimeSpan.Zero, interval);
+    }
+
+    private async Task TickAsync()
+    {
+        if (Interlocked.Exchange(ref _ticking, 1) == 1) return;
+        try
         {
-            try
+            if (!_initialized)
             {
-                _repository.InitSchema();
+                try
+                {
+                    _repository.InitSchema((sql, e) =>
+                        _logger.LogError(e, "[AdminDb] Migration failed: {Sql}", sql));
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "[AdminDb] InitTables failed — retrying migrations standalone");
+                    try { await _repository.ApplyMigrationsAsync((sql, ex) =>
+                        _logger.LogError(ex, "[AdminDb] Migration failed (standalone): {Sql}", sql)); }
+                    catch (Exception ex2) { _logger.LogError(ex2, "[AdminDb] Standalone migration pass failed"); }
+                    return;
+                }
 
                 var serverId = await _repository.GetOrCreateServerIdAsync(_config.ServerTag);
                 if (serverId is null)
                 {
-                    _logger.LogError("[AdminDb] Failed to resolve ServerId for tag '{Tag}'", _config.ServerTag);
+                    _logger.LogError("[AdminDb] Failed to resolve ServerId for tag '{Tag}' — retry next tick", _config.ServerTag);
                     return;
                 }
 
-                _myServerId = serverId.Value;
+                _myServerId  = serverId.Value;
+                _initialized = true;
                 _logger.LogInformation("[AdminDb] ServerTag={Tag} -> ServerId={Id}", _config.ServerTag, _myServerId);
-
-                await BuildAndMountAsync();
-
-                var interval = TimeSpan.FromSeconds(Math.Max(10, _config.RefreshIntervalSeconds));
-                _timer = new Timer(_ => _ = Task.Run(BuildAndMountAsync), null, interval, interval);
             }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "[AdminDb] Startup init failed");
-            }
-        });
+
+            await BuildAndMountAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "[AdminDb] Tick failed");
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _ticking, 0);
+        }
     }
 
     internal async Task BuildAndMountAsync()
@@ -215,7 +238,7 @@ internal sealed class AdminMountManager : IModule
     {
         try
         {
-            var path = Path.Combine(_bridge.SharpPath, "configs", "admins.jsonc.snapshot");
+            var path = Path.Combine(_bridge.SharpPath, "configs", "admins.jsonc");
 
             var doc = new SnapshotDoc
             {
@@ -240,7 +263,7 @@ internal sealed class AdminMountManager : IModule
         }
         catch (Exception e)
         {
-            _logger.LogWarning(e, "[AdminDb] Failed to write admins.jsonc.snapshot");
+            _logger.LogWarning(e, "[AdminDb] Failed to write admins.jsonc");
         }
     }
 

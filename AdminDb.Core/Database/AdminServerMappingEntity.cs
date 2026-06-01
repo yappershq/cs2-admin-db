@@ -13,4 +13,7 @@ public sealed class AdminServerMappingEntity
 
     [DbColumn(IsNullable = true)]
     public int? ServerId { get; set; }
+
+    [DbColumn(IsNullable = true, Length = 64)]
+    public string? RoleName { get; set; }
 }

@@ -8,7 +8,7 @@ namespace AdminDb.Core.Database;
 
 internal sealed class AdminDbRepository(IDatabaseProvider db)
 {
-    internal void InitSchema()
+    internal void InitSchema(Action<string, Exception>? onMigrationError = null)
     {
         db.InitTables(
             typeof(AdminServerEntity),
@@ -22,22 +22,30 @@ internal sealed class AdminDbRepository(IDatabaseProvider db)
             typeof(AdminPermissionEntity),
             typeof(AdminServerMappingEntity));
 
-        ApplyMigrationsAsync().GetAwaiter().GetResult();
+        ApplyMigrationsAsync(onMigrationError).GetAwaiter().GetResult();
     }
 
-    private async Task ApplyMigrationsAsync()
+    internal async Task ApplyMigrationsAsync(Action<string, Exception>? onError = null)
     {
         foreach (var sql in Migrations)
         {
             try { await db.ExecuteSqlAsync(sql); }
-            catch { }
+            catch (Exception e) { onError?.Invoke(sql, e); }
         }
     }
 
+    // Idempotent schema migrations applied at startup. ALTER MODIFY is a no-op
+    // when the column already matches. ADD COLUMN throws on existing column —
+    // caught at the call site and logged as info, not error.
+    //
+    // Fresh installs get the right shape via the entity attributes
+    // (SqlSugar CodeFirst.InitTables). These run as a belt-and-suspenders for
+    // pre-existing databases that pre-date a schema change.
     private static readonly string[] Migrations =
     [
         "ALTER TABLE admins      MODIFY Immunity TINYINT UNSIGNED NOT NULL",
         "ALTER TABLE admin_roles MODIFY Immunity TINYINT UNSIGNED NOT NULL",
+        "ALTER TABLE admin_servers_mapping ADD COLUMN RoleName VARCHAR(64) NULL",
     ];
 
     internal async Task<int?> GetOrCreateServerIdAsync(string tag)
