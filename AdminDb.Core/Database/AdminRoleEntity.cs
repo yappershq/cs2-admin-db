@@ -12,7 +12,7 @@ public sealed class AdminRoleEntity
     [DbColumn(IsNullable = false, Length = 64)]
     public string Name { get; set; } = string.Empty;
 
-    [DbColumn(IsNullable = false)]
+    [DbColumn(IsNullable = false, DataType = "TINYINT UNSIGNED")]
     public byte Immunity { get; set; }
 
     [DbColumn(IsNullable = false, DataType = "timestamp")]

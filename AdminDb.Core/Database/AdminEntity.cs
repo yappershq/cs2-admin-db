@@ -15,7 +15,7 @@ public sealed class AdminEntity
     [DbColumn(IsNullable = true, Length = 128)]
     public string? Name { get; set; }
 
-    [DbColumn(IsNullable = false)]
+    [DbColumn(IsNullable = false, DataType = "TINYINT UNSIGNED")]
     public byte Immunity { get; set; }
 
     [DbColumn(IsNullable = true, DataType = "datetime")]
