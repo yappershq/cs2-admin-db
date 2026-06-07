@@ -30,8 +30,27 @@ internal sealed class AdminDbRepository(IDatabaseProvider db)
         foreach (var sql in Migrations)
         {
             try { await db.ExecuteSqlAsync(sql); }
-            catch (Exception e) { onError?.Invoke(sql, e); }
+            catch (Exception e)
+            {
+                // A migration that's already been applied (column/key already exists, or a
+                // MODIFY/DROP targeting something absent) is benign — the schema is already in
+                // the desired shape (fresh installs get it from CodeFirst.InitTables). Skip
+                // silently; only surface genuine failures so they don't masquerade as errors.
+                if (IsAlreadyApplied(e))
+                    continue;
+
+                onError?.Invoke(sql, e);
+            }
         }
+    }
+
+    // True when the migration error means "already in the target state" rather than a real failure.
+    private static bool IsAlreadyApplied(Exception e)
+    {
+        var m = e.Message;
+        return m.Contains("Duplicate column name", StringComparison.OrdinalIgnoreCase)
+            || m.Contains("Duplicate key name",    StringComparison.OrdinalIgnoreCase)
+            || m.Contains("check that column/key exists", StringComparison.OrdinalIgnoreCase);
     }
 
     // Idempotent schema migrations applied at startup. ALTER MODIFY is a no-op
